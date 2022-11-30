@@ -16,7 +16,7 @@ const GetAuthorizationHeader = async () => {
     const authUrl =
       'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
 
-    const { data } = axios.post(authUrl, parameter, {
+    const { data } = await axios.post(authUrl, parameter, {
       headers: header
     })
 

@@ -1,16 +1,48 @@
 import axios from 'axios'
 import template from '../templates/MRT.js'
 import writejson from '../utils/writejson.js'
-import accesstoken from './fetchAccessToken.js'
+import nodeSchedule from 'node-schedule'
 
-let fetchMRTExits
-export default fetchMRTExits = async (event) => {
+// 取得accesstoken
+let accesstoken = ''
+export const GetAuthorizationHeader = async () => {
+  try {
+    const parameter = {
+      grant_type: 'client_credentials',
+      client_id: 'cloris222-a9ed2e9d-fe1e-42ee',
+      client_secret: '84847813-0269-48c3-b80d-ad0b6f1ce120'
+    }
+
+    const header = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    const authUrl =
+      'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token'
+
+    const { data } = await axios.post(authUrl, parameter, {
+      headers: header
+    })
+
+    console.log('accesstoken', data.access_token)
+    accesstoken = data.access_token
+    console.log('accesstoken2', accesstoken)
+    accesstoken = data.access_token
+
+    return accesstoken
+  } catch (error) {
+    console.error(error)
+  }
+  nodeSchedule.scheduleJob('0 */4 * * *', GetAuthorizationHeader)
+  GetAuthorizationHeader()
+}
+
+export const fetchMRTExits = async (event) => {
   try {
     console.log('mrtaccesstoken', accesstoken)
     // console.log('eventmessage', event)
     const header = {
-      authorization:
-        'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE2Njk4NjE4NzIsImlhdCI6MTY2OTc3NTQ3MiwianRpIjoiOGQzNTYyM2YtOGVjOC00ZDNkLThlN2ItNjYxZWNhZGM3YTkzIiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiY2ZhODQ0MmItYTAwMy00ZGU5LWI3MzQtNGEzYmY2NWQ0ZWM1IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiY2xvcmlzMjIyLWE5ZWQyZTlkLWZlMWUtNDJlZSIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsic3RhdGlzdGljIiwicHJlbWl1bSIsIm1hYXMiLCJhZHZhbmNlZCIsImhpc3RvcmljYWwiLCJiYXNpYyJdfSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwidXNlciI6IjdmNmZiOTg2In0.gp7IX_zy4ecudbET1m1JVy8BfY3Dpq0rBUoe1B3NIWcLgfkgcTpgAiT7kMb5egWDyxpbns9qOV_PqkshJ9mBHxljJGwCvo9VQorMmJVaYIzXCNCH-PcwFo9AcxEqmmyMYLdOjk9Rkhl9jGjVHg5c6dI5xkhfxPC9IrBd8BUq1-Gqwu6P3vWBt3VdaKqAgoFMjrnAYx3AdlmN1kpkFTJSMBkgqD5v4zAzYSPtrQJbT1O-SabG583cN-woGWoB9VZ6dHtAci3j_eLy_ut6nT1WGlpeied3MQQZ-yyeTQL3rYIWIRm8S40ppdZV3pwWd4QhytZF8oroT1atIUQTrXWueA'
+      authorization: 'Bearer ' + accesstoken
     }
     const { data } = await axios.get(
       'https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationExit/TRTC?%24format=JSON',
